@@ -13,10 +13,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.lang.annotation.Annotation;
-import java.lang.reflect.AnnotatedType;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.lang.reflect.Parameter;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
@@ -188,14 +186,14 @@ public class DeviceGenerator {
                 writer.write("\t@Override\n");
                 writer.write("\tpublic " + myMeth.getReturnType().getSimpleName() + " " + myMeth.getName());
                 writer.write("( ");
-                Parameter[] params = myMeth.getParameters();
-                for (Parameter p : params) {
-                    writer.write(p.getType().getSimpleName() + " " + p.getName() + " ");
+                Class<?>[] params = myMeth.getParameterTypes();
+                for (Class<?> p : params) {
+                    writer.write(p.getSimpleName() + " " + p.getName() + " ");
                 }
                 writer.write(") throws ");
                 Type[] throwTypes = myMeth.getGenericExceptionTypes();
                 for (Type tt : throwTypes) {
-                    writer.write(tt.getTypeName() + " ");
+                    writer.write(tt + " ");
                 }
                 writer.write("{\n");
 

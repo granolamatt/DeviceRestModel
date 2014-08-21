@@ -25,7 +25,9 @@
         <dependency>
             <groupId>org.adrianwalker</groupId>
             <artifactId>multiline-string</artifactId>
-            <version>0.1.1</version> 
+			<version>0.1.1</version>
+<!--			<scope>system</scope>
+			<systemPath>multiline-string-0.1.1.jar</systemPath> -->
         </dependency>
 <!--        <dependency>
             <groupId>org.glassfish.jersey.containers</groupId>
@@ -59,6 +61,11 @@
             <artifactId>junit</artifactId>
             <version>4.9</version>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+	       <groupId>org.jdom</groupId>
+	       <artifactId>jdom2</artifactId>
+	       <version>2.0.5</version>
         </dependency>
     </dependencies>
 
