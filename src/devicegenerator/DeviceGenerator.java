@@ -7,12 +7,10 @@ package devicegenerator;
 import devicerestmodel.representations.DevicePropertyNode;
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Type;
@@ -187,13 +185,14 @@ public class DeviceGenerator {
                 writer.write("\tpublic " + myMeth.getReturnType().getSimpleName() + " " + myMeth.getName());
                 writer.write("( ");
                 Class<?>[] params = myMeth.getParameterTypes();
+                int counter = 0;
                 for (Class<?> p : params) {
-                    writer.write(p.getSimpleName() + " " + p.getName() + " ");
+                    writer.write(p.getSimpleName() + " arg" + counter++);
                 }
                 writer.write(") throws ");
-                Type[] throwTypes = myMeth.getGenericExceptionTypes();
-                for (Type tt : throwTypes) {
-                    writer.write(tt + " ");
+                Class<?>[] throwTypes = myMeth.getExceptionTypes();
+                for (Class<?> tt : throwTypes) {
+                    writer.write(tt.getSimpleName() + " ");
                 }
                 writer.write("{\n");
 
