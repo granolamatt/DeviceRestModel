@@ -56,7 +56,7 @@ public class OptionListing {
         int count;
 
         System.out.println("Usage: " + progName + " [options]\n");
-        System.out.println("  --help,\t-h\t\t\tDisplays this information");
+        System.out.println("--help      ,\t\t-h\t\t\tDisplays this information");
         for (count = 0; count < opts.length; count++) {
             String cmd = "";
             if (opts[count][name] != null && opts[count][shortName] != null) {

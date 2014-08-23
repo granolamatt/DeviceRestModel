@@ -41,7 +41,7 @@ public abstract class App {
         String host = "localhost:7023";
         String name = "DefaultApp";
         String desc = "Default Skeleton App";
-        String proxy = "";
+        String proxy = "localhost:7024";
         Element configurationElement = null;
         File xmlConfigurationFile = null;
         for (OptionListing.RetClass arg : argv) {
