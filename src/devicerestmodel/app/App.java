@@ -16,9 +16,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriBuilder;
-import mdutil.Client;
-import mdutil.MdUtil;
-import mdutil.ServerResponse;
 import org.eclipse.jetty.server.Server;
 import org.glassfish.jersey.jetty.JettyHttpContainerFactory;
 import org.jdom2.Element;
@@ -181,36 +178,36 @@ public abstract class App {
         final int deviceProxyIpPort = systemConfig.getDeviceProxyIpPort();
         final String proxyUri = "http://" + deviceProxyIpAddress + ":" + deviceProxyIpPort + "/DeviceProxy1";
         final byte[] sendContent = deviceServerXmlString.getBytes();
-        final PropertyChangeListener proxyContactListener = new PropertyChangeListener() {
-
-            @Override
-            public void propertyChange(PropertyChangeEvent evt) {
-                if (evt.getPropertyName().equals("ContactProxy")) {
-                    ServerResponse serverResponse = (ServerResponse) evt.getNewValue();
-                    if (serverResponse.getException() == null) {
-                        deviceProxyContacted = true;
-                        System.out.println("Proxy successfully contacted.");
-                    } else {
-                        System.out.print(".");
-                    }
-                }
-            }
-        };
-
-        new Thread(new Runnable() {
-
-            @Override
-            public void run() {
-                while (!deviceProxyContacted) {
-                    Client.sendRequest(Client.RequestType.Put, proxyUri, "text/xml", null, sendContent, null, 1000, "ContactProxy", proxyContactListener);
-                    try {
-                        Thread.sleep(deviceProxyContactInterval);
-                    } catch (InterruptedException ex) {
-                        Logger.getLogger(App.class.getName()).log(Level.SEVERE, null, ex);
-                    }
-                }
-            }
-        }).start();
+//        final PropertyChangeListener proxyContactListener = new PropertyChangeListener() {
+//
+//            @Override
+//            public void propertyChange(PropertyChangeEvent evt) {
+//                if (evt.getPropertyName().equals("ContactProxy")) {
+//                    ServerResponse serverResponse = (ServerResponse) evt.getNewValue();
+//                    if (serverResponse.getException() == null) {
+//                        deviceProxyContacted = true;
+//                        System.out.println("Proxy successfully contacted.");
+//                    } else {
+//                        System.out.print(".");
+//                    }
+//                }
+//            }
+//        };
+//
+//        new Thread(new Runnable() {
+//
+//            @Override
+//            public void run() {
+//                while (!deviceProxyContacted) {
+//                    Client.sendRequest(Client.RequestType.Put, proxyUri, "text/xml", null, sendContent, null, 1000, "ContactProxy", proxyContactListener);
+//                    try {
+//                        Thread.sleep(deviceProxyContactInterval);
+//                    } catch (InterruptedException ex) {
+//                        Logger.getLogger(App.class.getName()).log(Level.SEVERE, null, ex);
+//                    }
+//                }
+//            }
+//        }).start();
 
     }
 

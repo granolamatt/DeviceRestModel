@@ -14,12 +14,12 @@ import devicerestmodel.logger.RestLogger;
 import devicerestmodel.representations.DevicePropertyNode;
 import devicerestmodel.representations.HtmlInterface;
 import devicerestmodel.representations.JSONInterface;
+import devicerestmodel.app.MdUtil;
 import java.io.InputStream;
 import java.util.ArrayList;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import mdutil.MdUtil;
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.glassfish.jersey.media.sse.EventOutput;
 import org.glassfish.jersey.media.sse.SseFeature;
@@ -114,7 +114,7 @@ public final class ResourceBase extends ResourceConfig {
         register(EventServices.class);
     }
 
-    public void registerStaticResource(String path, String produces) {
+    public void registerStaticResource(final String path, final String produces) {
         final Resource.Builder resourceBuilder = Resource.builder();
         resourceBuilder.path("/resources/" + path);
 

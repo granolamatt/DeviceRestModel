@@ -22,25 +22,36 @@ public abstract class DevicePropertyNode implements PropertyChangeListener {
     private String name = "";
     private final PropertyChangeSupport changeSupport = new PropertyChangeSupport(this);
     private final ArrayList<DevicePropertyNode> children = new ArrayList<>();
+    private final DevicePropertyNode parent;
 
     public DevicePropertyNode(String name, PropertyChangeListener listener) {
         this.name = name;
+        DevicePropertyNode myParent = null;
         if (listener != null) {
+            if (listener instanceof DevicePropertyNode) {
+                myParent = (DevicePropertyNode) listener;
+            }
             changeSupport.addPropertyChangeListener(listener);
         }
+        parent = myParent;
     }
 
     public DevicePropertyNode(PropertyChangeListener listener) {
         this.name = this.getClass().getSimpleName().toLowerCase();
+        DevicePropertyNode myParent = null;
         if (listener != null) {
+            if (listener instanceof DevicePropertyNode) {
+                myParent = (DevicePropertyNode) listener;
+            }
             changeSupport.addPropertyChangeListener(listener);
         }
+        parent = myParent;
     }
 
     public String getName() {
         return name;
     }
-    
+
     protected final ArrayList<DevicePropertyNode> getChildren() {
         return children;
     }

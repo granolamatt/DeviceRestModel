@@ -4,11 +4,11 @@
  */
 package devicerestmodel.htmlhelpers;
 
+import devicerestmodel.app.MdUtil;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.io.IOException;
-import mdutil.MdUtil;
 import org.glassfish.jersey.media.sse.EventOutput;
 import org.glassfish.jersey.media.sse.OutboundEvent;
 import org.jdom2.Element;

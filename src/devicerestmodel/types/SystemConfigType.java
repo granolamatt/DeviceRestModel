@@ -4,10 +4,10 @@
  */
 package devicerestmodel.types;
 
+import devicerestmodel.app.MdUtil;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import mdutil.MdUtil;
 import org.jdom2.Element;
 
 /**
