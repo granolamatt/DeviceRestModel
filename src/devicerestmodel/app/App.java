@@ -5,8 +5,7 @@ import devicerestmodel.representations.DevicePropertyNode;
 import devicerestmodel.services.ResourceBase;
 import devicerestmodel.types.DeviceServerType;
 import devicerestmodel.types.SystemConfigType;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
+import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
@@ -18,7 +17,10 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriBuilder;
 import org.eclipse.jetty.server.Server;
 import org.glassfish.jersey.jetty.JettyHttpContainerFactory;
+import org.jdom2.Document;
 import org.jdom2.Element;
+import org.jdom2.JDOMException;
+import org.jdom2.input.SAXBuilder;
 
 public abstract class App {
 
@@ -33,6 +35,76 @@ public abstract class App {
     private boolean started = false;
 
     public abstract Element getConfiguration();
+
+    public static Element configureArgs(String[] args) {
+        final OptionListing.RetClass[] argv = OptionListing.parseAllOptions(args);
+        String host = "localhost:7023";
+        String name = "DefaultApp";
+        String desc = "Default Skeleton App";
+        String proxy = "";
+        Element configurationElement = null;
+        File xmlConfigurationFile = null;
+        for (OptionListing.RetClass arg : argv) {
+            try {
+                switch (arg.index) {
+                    case 0:
+                        host = arg.args[0];
+                        System.out.println("Host " + host);
+                        break;
+                    case 1:
+                        name = arg.args[0];
+                        System.out.println("Using name " + name);
+                        break;
+                    case 2:
+                        desc = arg.args[0];
+                        System.out.println("Description " + desc);
+                        break;
+                    case 3:
+                        proxy = arg.args[0];
+                        System.out.println("Proxy not implemented yet " + proxy);
+                        break;
+                    case 4:
+                        String fname = arg.args[0];
+                        System.out.println("Using config " + fname);
+                        xmlConfigurationFile = new File(fname);
+                        break;
+                }
+            } catch (NumberFormatException ex) {
+                System.out.println("Number was off");
+            }
+        }
+
+        if (xmlConfigurationFile != null) {
+            if (!xmlConfigurationFile.exists()) {
+                System.out.println("Configuration file not found.");
+                System.exit(1);
+            }
+
+            SAXBuilder builder = new SAXBuilder();
+            Document document;
+            try {
+                document = (Document) builder.build(xmlConfigurationFile);
+                configurationElement = document.getRootElement();
+            } catch (Exception ex) {
+                System.out.println("Can't read configuration file.");
+                System.exit(1);
+            }
+        } else {
+            configurationElement = new Element("device");
+            Element config = new Element("systemconfig");
+            config.addContent(new Element("devicename").setText(name));
+            config.addContent(new Element("devicedescription").setText(desc));
+            config.addContent(new Element("deviceproxy").setText(proxy));
+            config.addContent(new Element("deviceserver").setText(host));
+            configurationElement.addContent(config);
+        }
+
+        if (configurationElement == null || !configurationElement.getName().equals("device")) {
+            System.out.println("Not a proper configuration XML file.");
+            System.exit(-1);
+        }
+        return configurationElement;
+    }
 
     public final void doInit() {
         addStaticResource("devicerestmodel/resources/jquery.min.js", MediaType.APPLICATION_JSON);
@@ -116,7 +188,7 @@ public abstract class App {
     public SystemConfigType getSystemConfig() {
         return systemConfig;
     }
-    
+
     public void startServer() throws IOException {
 
         System.out.println("!!!!!!!!! Starting " + getBaseURI());

@@ -39,34 +39,7 @@ public class DefaultApp extends App implements PropertyChangeListener {
     }
 
     public static void main(String[] args) throws IOException {
-        if (args.length == 0) {
-            System.out.println("Must specify configuration file.");
-            System.exit(1);
-        }
-
-        File xmlConfigurationFile = new File(args[0]);
-        if (!xmlConfigurationFile.exists()) {
-            System.out.println("Configuration file not found.");
-            System.exit(1);
-        }
-
-        SAXBuilder builder = new SAXBuilder();
-        Document document = null;
-        Element configurationElement = null;
-        try {
-            document = (Document) builder.build(xmlConfigurationFile);
-            configurationElement = document.getRootElement();
-        } catch (JDOMException ex) {
-            System.out.println("Can't read configuration file.");
-            System.exit(1);
-        }
-
-        if (configurationElement == null || !configurationElement.getName().equals("device")) {
-            System.out.println("Not a proper configuration XML file.");
-            System.exit(-1);
-        }
-
-        new DefaultApp(configurationElement);
+        new DefaultApp(App.configureArgs(args));
     }
 
     @Override
