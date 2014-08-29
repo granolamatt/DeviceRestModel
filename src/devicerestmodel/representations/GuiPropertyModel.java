@@ -80,13 +80,28 @@ public abstract class GuiPropertyModel extends DevicePropertyNode implements Htm
         String[] paths = addPaths();
         for (String mpath : paths) {
             try {
-//                DevicePropertyNode dev = getPropertyNodeFromPath(mpath);
-                sb.append("$(document).ready(WidgetStarter(\"");
-                sb.append(mpath);
-                sb.append("\", function() {\n");
-//                sb.append(dev.getName());
-                sb.append("loadJS();\n");
-                sb.append("        }));\n");
+                DevicePropertyNode myNode = getPropertyNodeFromPath(mpath);
+                if (myNode instanceof GuiPropertyModel) {
+                    GuiPropertyModel myGui = (GuiPropertyModel) myNode;
+                    sb.append("var ");
+                    sb.append(myGui.getName());
+                    sb.append(" = new function() { \n");
+                    sb.append(myGui.getJSONFunction());
+                    sb.append("\n");
+                    sb.append("this.loadJS = function() { \n");
+                    sb.append("main()");
+                    sb.append("};\n");
+                    sb.append("};\n");
+                    sb.append("$(document).ready(");
+                    sb.append(myGui.getName());
+                    sb.append(".loadJS() \n");
+                    sb.append(");\n");
+                }
+//                sb.append("$(document).ready(WidgetStarter(\"");
+//                sb.append(mpath);
+//                sb.append("\", function() {\n");
+//                sb.append("loadJS();\n");
+//                sb.append("        }));\n");
             } catch (Exception ex) {
                 Logger.getLogger(GuiPropertyModel.class.getName()).log(Level.SEVERE, null, ex);
             }
@@ -127,21 +142,21 @@ public abstract class GuiPropertyModel extends DevicePropertyNode implements Htm
 
     @Override
     public final Response getJSON() throws Exception {
-        StringBuilder ret = new StringBuilder();
-        ret.append("var ");
-        ret.append(getName());
-        ret.append(" = new function() { \n");
-        ret.append(getJSONFunction());
-        ret.append("\n");
-        ret.append("this.loadJS = function() { \n");
-        ret.append("main()");
-        ret.append("};\n");
-        ret.append("};\n");
-        ret.append("function loadJS() { \n");
-        ret.append(getName());
-        ret.append(".loadJS() \n");
-        ret.append("} \n");
-        return Response.ok().entity(ret.toString()).build();
+        StringBuilder sb = new StringBuilder();
+        sb.append("var ");
+        sb.append(getName());
+        sb.append(" = new function() { \n");
+        sb.append(getJSONFunction());
+        sb.append("\n");
+        sb.append("this.loadJS = function() { \n");
+        sb.append("main()");
+        sb.append("};\n");
+        sb.append("};\n");
+        sb.append("function loadJS() { \n");
+        sb.append(getName());
+        sb.append(".loadJS() \n");
+        sb.append("} \n");
+        return Response.ok().entity(sb.toString()).build();
     }
 
     @Override
