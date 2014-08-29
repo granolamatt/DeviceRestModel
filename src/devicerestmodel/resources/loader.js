@@ -1,11 +1,9 @@
 
 
-function WidgetStarter(url) {
+function WidgetStarter(url, callback) {
     $.ajax({type: "GET",
         url: url,
-        success: function() {
-            loadJS();
-        },
+        success: callback,
         headers:
                 {
                     Accept: "application/json; charset=utf-8",

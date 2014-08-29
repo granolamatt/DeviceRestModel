@@ -5,7 +5,7 @@
  */
 package devicerestmodel.representations;
 
-import java.beans.PropertyChangeListener;
+import java.awt.Color;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.logging.Level;
@@ -14,7 +14,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.ws.rs.core.Response;
 import org.adrianwalker.multilinestring.Multiline;
-import org.jdom2.Element;
 
 /**
  *
@@ -22,12 +21,20 @@ import org.jdom2.Element;
  */
 public abstract class GuiPropertyModel extends DevicePropertyNode implements HtmlInterface, JSONInterface {
 
-    public GuiPropertyModel(String name, PropertyChangeListener listener) {
-        super(name, listener);
+    private int xpos = 0;
+    private int ypos = 0;
+    private int height = 100;
+    private int width = 100;
+    private int zindex = 1;
+    private int padding = 0;
+    private Color backgroundColor = null;
+
+    public GuiPropertyModel(String name, DevicePropertyNode parent) {
+        super(name, parent);
     }
 
-    public GuiPropertyModel(PropertyChangeListener listener) {
-        super(listener);
+    public GuiPropertyModel(DevicePropertyNode parent) {
+        super(parent);
     }
 
     /**
@@ -55,9 +62,18 @@ public abstract class GuiPropertyModel extends DevicePropertyNode implements Htm
 
     /**
      *
+     * <div id="{@link #getName()}" class="{@link #getClassname()}"
+     * style="{@link #getXposAttr()}{@link #getYposAttr()} {@link
+     * #getHeightAttr()}{@link #getWidthAttr()}{@link #getZIndexAttr()} {@link
+     * #getPaddingAttr()}{@link #getBackgroundColorAttr()} position: absolute">
+     *
      */
     @Multiline
     private static String myhtml;
+
+    public String getClassname() {
+        return this.getClass().getSimpleName();
+    }
 
     public String getJavacriptFromPaths() {
         StringBuilder sb = new StringBuilder();
@@ -65,7 +81,11 @@ public abstract class GuiPropertyModel extends DevicePropertyNode implements Htm
         for (String mpath : paths) {
             sb.append("$(document).ready(WidgetStarter(\"");
             sb.append(mpath);
-            sb.append("\"));\n");
+            sb.append("\", \"function() {\n");
+            sb.append("            ");
+            sb.append(getName());
+            sb.append("loadJS();\n");
+            sb.append("        }\"));\n");
         }
 
         return sb.toString();
@@ -80,7 +100,11 @@ public abstract class GuiPropertyModel extends DevicePropertyNode implements Htm
         return "";
     }
 
-    public String getMyHTML() throws Exception {
+    public String getD3Ref() {
+        return "d3.select(\"div#" + getName() + "\")";
+    }
+
+    public final String getMyHTML() throws Exception {
         StringBuilder sb = new StringBuilder();
         sb.append(substituteVariablesWithMethod(myhtml, this));
         ArrayList<DevicePropertyNode> children = getChildren();
@@ -90,13 +114,33 @@ public abstract class GuiPropertyModel extends DevicePropertyNode implements Htm
                 sb.append("\n");
             }
         }
+        sb.append("</div>");
 
         return sb.toString();
     }
 
+    /**
+     * function {@link #getName()}loadJS() {
+     *
+     * XMLLoader("/inputoutputs/inputoutput0/output", cb);
+     *
+     *
+     *
+     * }
+     */
+    @Multiline
+    private static String myjson;
+
     @Override
     public abstract Response getJSON() throws Exception;
+//    {
+//        String ret = GuiPropertyModel.substituteVariablesWithMethod(myjson, this);
+//        System.out.println("Returning " + ret);
+//        return Response.ok().entity(ret).build();
+//    }
 
+//    @Override
+//    public abstract Response getJSON() throws Exception;
     @Override
     public final Response getHTML() throws Exception {
         return Response.ok().entity(getHTMLDocument()).build();
@@ -118,6 +162,161 @@ public abstract class GuiPropertyModel extends DevicePropertyNode implements Htm
         }
         matcher.appendTail(buffer);
         return buffer.toString();
+    }
+
+    public String getXposAttr() {
+        return "left: " + xpos + "px; ";
+    }
+
+    /**
+     * @return the xpos
+     */
+    public int getXpos() {
+        return xpos;
+    }
+
+    /**
+     * @param xpos the xpos to set
+     */
+    public void setXpos(int xpos) {
+        this.xpos = xpos;
+    }
+
+    public String getYposAttr() {
+        return "top: " + ypos + "px; ";
+    }
+
+    /**
+     * @return the ypos
+     */
+    public int getYpos() {
+        return ypos;
+    }
+
+    /**
+     * @param ypos the ypos to set
+     */
+    public void setYpos(int ypos) {
+        this.ypos = ypos;
+    }
+
+    public String getHeightAttr() {
+        if (height != 0) {
+            return "height: " + height + "px; ";
+        }
+        return "";
+    }
+
+    /**
+     * @return the height
+     */
+    public int getHeight() {
+        return height;
+    }
+
+    /**
+     * @param height the height to set
+     */
+    public void setHeight(int height) {
+        this.height = height;
+    }
+
+    public String getWidthAttr() {
+        if (width != 0) {
+            return "width: " + width + "px; ";
+        }
+        return "";
+    }
+
+    /**
+     * @return the width
+     */
+    public int getWidth() {
+        return width;
+    }
+
+    /**
+     * @param width the width to set
+     */
+    public void setWidth(int width) {
+        this.width = width;
+    }
+
+    public String getZIndexAttr() {
+        return "z-index: " + zindex + "; ";
+    }
+
+    /**
+     * @return the zindex
+     */
+    public int getZIndex() {
+        return zindex;
+    }
+
+    /**
+     * @param zpos the zindex to set
+     */
+    public void setZIndex(int zpos) {
+        this.zindex = zpos;
+    }
+
+    public String getPaddingAttr() {
+        if (padding != 0) {
+            return "padding: " + padding + "em; ";
+        }
+        return "";
+    }
+
+    /**
+     * @return the padding
+     */
+    public int getPadding() {
+        return padding;
+    }
+
+    /**
+     * @param padding the padding to set
+     */
+    public void setPadding(int padding) {
+        this.padding = padding;
+    }
+
+    private String getColorString(int c) {
+        String cstring = String.format("%x", c);
+        if (cstring.length() < 2) {
+            cstring = "0" + cstring;
+        }
+        return cstring;
+    }
+
+    private String getInternetColor(Color c) {
+
+        String cstring = getColorString(c.getRed());
+        cstring += getColorString(c.getGreen());
+        cstring += getColorString(c.getBlue());
+
+        return cstring;
+    }
+
+    public String getBackgroundColorAttr() {
+        if (backgroundColor != null) {
+            return "background-color: #" + getInternetColor(backgroundColor) + "; ";
+        }
+        return "";
+    }
+
+    /**
+     * @return the color
+     */
+    public Color getBackgroundColor() {
+        return backgroundColor;
+    }
+
+    /**
+     * @param color the color to set
+     */
+    public void setBackgroundColor(Color color) {
+        this.backgroundColor = color;
     }
 
 }

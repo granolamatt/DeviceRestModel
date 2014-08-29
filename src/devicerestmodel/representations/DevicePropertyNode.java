@@ -52,6 +52,10 @@ public abstract class DevicePropertyNode implements PropertyChangeListener {
         return name;
     }
 
+    public DevicePropertyNode getParent() {
+        return parent;
+    }
+
     protected final ArrayList<DevicePropertyNode> getChildren() {
         return children;
     }
