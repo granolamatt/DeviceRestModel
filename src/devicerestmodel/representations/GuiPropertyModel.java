@@ -79,13 +79,17 @@ public abstract class GuiPropertyModel extends DevicePropertyNode implements Htm
         StringBuilder sb = new StringBuilder();
         String[] paths = addPaths();
         for (String mpath : paths) {
-            sb.append("$(document).ready(WidgetStarter(\"");
-            sb.append(mpath);
-            sb.append("\", \"function() {\n");
-            sb.append("            ");
-            sb.append(getName());
-            sb.append("loadJS();\n");
-            sb.append("        }\"));\n");
+            try {
+//                DevicePropertyNode dev = getPropertyNodeFromPath(mpath);
+                sb.append("$(document).ready(WidgetStarter(\"");
+                sb.append(mpath);
+                sb.append("\", function() {\n");
+//                sb.append(dev.getName());
+                sb.append("loadJS();\n");
+                sb.append("        }));\n");
+            } catch (Exception ex) {
+                Logger.getLogger(GuiPropertyModel.class.getName()).log(Level.SEVERE, null, ex);
+            }
         }
 
         return sb.toString();
@@ -120,7 +124,7 @@ public abstract class GuiPropertyModel extends DevicePropertyNode implements Htm
     }
 
     /**
-     * function {@link #getName()}loadJS() {
+     * function loadJS() {
      *
      * XMLLoader("/inputoutputs/inputoutput0/output", cb);
      *
