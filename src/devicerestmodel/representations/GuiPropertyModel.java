@@ -123,28 +123,27 @@ public abstract class GuiPropertyModel extends DevicePropertyNode implements Htm
         return sb.toString();
     }
 
-    /**
-     * function loadJS() {
-     *
-     * XMLLoader("/inputoutputs/inputoutput0/output", cb);
-     *
-     *
-     *
-     * }
-     */
-    @Multiline
-    private static String myjson;
+    public abstract String getJSONFunction() throws Exception;
 
     @Override
-    public abstract Response getJSON() throws Exception;
-//    {
-//        String ret = GuiPropertyModel.substituteVariablesWithMethod(myjson, this);
-//        System.out.println("Returning " + ret);
-//        return Response.ok().entity(ret).build();
-//    }
+    public final Response getJSON() throws Exception {
+        StringBuilder ret = new StringBuilder();
+        ret.append("var ");
+        ret.append(getName());
+        ret.append(" = new function() { \n");
+        ret.append(getJSONFunction());
+        ret.append("\n");
+        ret.append("this.loadJS = function() { \n");
+        ret.append("main()");
+        ret.append("};\n");
+        ret.append("};\n");
+        ret.append("function loadJS() { \n");
+        ret.append(getName());
+        ret.append(".loadJS() \n");
+        ret.append("} \n");
+        return Response.ok().entity(ret.toString()).build();
+    }
 
-//    @Override
-//    public abstract Response getJSON() throws Exception;
     @Override
     public final Response getHTML() throws Exception {
         return Response.ok().entity(getHTMLDocument()).build();
