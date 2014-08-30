@@ -51,7 +51,16 @@ public abstract class GuiPropertyModel extends DevicePropertyNode implements Htm
      * <title>{@link #getName()}</title>
      * </head>
      * <body>
-     * <script type="text/javascript"> {@link #getJavacriptFromPaths()}
+     * <script type="text/javascript">
+     * function GuiPropertyModel(context) { if (context !== undefined) {
+     * this.myParent = context.parent || undefined; } alert("Made it " +
+     * context); GuiPropertyModel.prototype.showAlert = function(){
+     * alert(this.myParent); } }
+     *
+     * {@link #getJavascriptPrototype()}
+     * {@link #getJavacriptFromPaths()} $(document).ready(function(){ var
+     * testbase = new GuiPropertyModel(); var testgui = new
+     * GUI({parent:testbase,unused:true}); testgui.showAlert();});
      * </script> {@link #getMyHTML()}
      * </body>
      * </html>
@@ -73,6 +82,37 @@ public abstract class GuiPropertyModel extends DevicePropertyNode implements Htm
 
     public String getClassname() {
         return this.getClass().getSimpleName();
+    }
+
+    public String getJavascriptPrototype() {
+        StringBuilder sb = new StringBuilder();
+        Class<?> extended = this.getClass().getSuperclass();
+        sb.append("function ");
+        sb.append(getClassname());
+        sb.append("(context) {\n");
+        if (extended.isAssignableFrom(GuiPropertyModel.class)) {
+            sb.append(extended.getSimpleName());
+            sb.append(".call(this, context);\n");
+        }
+
+//        sb.append("var parent = undefined;\n");
+//        sb.append("if ( arguments.length > 0) {\n");
+//        sb.append("   parent = arguments[0];\n");
+//        sb.append("   alert('from child' + parent);\n");
+//        sb.append("}\n");
+        sb.append("}\n");
+
+        if (extended.isAssignableFrom(GuiPropertyModel.class)) {
+            sb.append(getClassname());
+            sb.append(".prototype = Object.create(");
+            sb.append(extended.getSimpleName());
+            sb.append(".prototype);\n");
+//            sb.append(getClassname());
+//            sb.append(".prototype.constructor = ");
+//            sb.append(getClassname());
+//            sb.append(";\n");
+        }
+        return sb.toString();
     }
 
     public String getJavacriptFromPaths() {
