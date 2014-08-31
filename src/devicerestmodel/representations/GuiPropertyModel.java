@@ -71,6 +71,16 @@ public abstract class GuiPropertyModel extends DevicePropertyNode implements Htm
         }
     }
 
+    public String getContextMethods() {
+        StringBuilder sb = new StringBuilder();
+        for (String key : myMethods.keySet()) {
+            sb.append("GuiPropertyModel.prototype.")
+                    .append(myMethods.get(key).getName()).append(" = function() {\n");
+            sb.append("return this.").append(key).append(";\n}\n");
+        }
+        return sb.toString();
+    }
+
     private String getChildJavascript(GuiPropertyModel myClass) throws Exception {
         StringBuilder sb = new StringBuilder();
         Class<?> extended = myClass.getClass().getSuperclass();
@@ -84,7 +94,10 @@ public abstract class GuiPropertyModel extends DevicePropertyNode implements Htm
         }
         // This is a great place to add local context variables
         // now add global calls to local variables for class
-        sb.append("var d3ref = this.getD3();");
+        sb.append("var d3ref = this.getD3();\n");
+        for (String key : myMethods.keySet()) {
+            sb.append("var ").append(key).append(" = this.").append(myMethods.get(key).getName()).append("();\n");
+        }
 
         sb.append(myClass.getJSONFunction());
 
@@ -107,7 +120,7 @@ public abstract class GuiPropertyModel extends DevicePropertyNode implements Htm
         Class<?> extern = this.getClass();
 //        if (extern.isAssignableFrom(DevicePropertyNode.class)) {
         while (!extern.equals(DevicePropertyNode.class)) {
-            System.out.println("Class type is " + extern.getSimpleName());
+//            System.out.println("Class type is " + extern.getSimpleName());
             ArrayList<String> fields = new ArrayList<>();
             for (Field field : extern.getDeclaredFields()) {
                 if (!java.lang.reflect.Modifier.isStatic(field.getModifiers())) {
@@ -123,7 +136,7 @@ public abstract class GuiPropertyModel extends DevicePropertyNode implements Htm
 
                         for (String match : fields) {
                             if (m.equals(match)) {
-                                System.out.println("Method is " + method.getName() + " field " + match);
+//                                System.out.println("Method is " + method.getName() + " field " + match);
                                 myMethods.put(match, method);
                                 break;
                             }
