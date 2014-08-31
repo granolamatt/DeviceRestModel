@@ -6,6 +6,8 @@
 package devicerestmodel.representations;
 
 import java.awt.Color;
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -29,13 +31,16 @@ public abstract class GuiPropertyModel extends DevicePropertyNode implements Htm
     private int zindex = 1;
     private int padding = 0;
     private Color backgroundColor = null;
+    private final HashMap<String, Method> myMethods = new HashMap<>();
 
     public GuiPropertyModel(String name, DevicePropertyNode parent) {
         super(name, parent);
+        loadFields();
     }
 
     public GuiPropertyModel(DevicePropertyNode parent) {
         super(parent);
+        loadFields();
     }
 
     /**
@@ -153,17 +158,72 @@ public abstract class GuiPropertyModel extends DevicePropertyNode implements Htm
         return sb.toString();
     }
     
+    private void loadFields() {
+        Class<?> extern = this.getClass();
+//        if (extern.isAssignableFrom(DevicePropertyNode.class)) {
+        while (!extern.equals(DevicePropertyNode.class)) {
+            System.out.println("Class type is " + extern.getSimpleName());
+            ArrayList<String> fields = new ArrayList<>();
+            for (Field field : extern.getDeclaredFields()) {
+                if (!java.lang.reflect.Modifier.isStatic(field.getModifiers())) {
+                    String f = field.getName().toLowerCase();
+                    fields.add(f);
+                }
+            }
+            for (Method method : extern.getDeclaredMethods()) {
+                if (!java.lang.reflect.Modifier.isStatic(method.getModifiers())) {
+                String m = method.getName();
+                if (m.startsWith("get")) {
+                    m = m.replaceFirst("get", "").toLowerCase();
+ 
+                
+                for (String match : fields) {
+                    if (m.equals(match)) {
+                        System.out.println("Method is " + method.getName() + " field " + match);
+                        myMethods.put(match, method);
+                        break;
+                    }
+                }
+                }
+                }
+            }
+            extern = extern.getSuperclass();
+        }
+//        }
+    }
+    
     public String getContext() {
         StringBuilder sb = new StringBuilder();
         sb.append("{d3ref:");
-        sb.append(getD3Ref());
+        sb.append(getD3Ref()); 
+        
+        for (String key : myMethods.keySet()) {
+            Method method = myMethods.get(key);
+            try {
+                String mymeth = method.invoke(this).toString();
+                if (mymeth != null) {
+                sb.append(",");
+            sb.append(key);
+            sb.append(":");
+            
+            if (method.getReturnType().isPrimitive() && !method.getReturnType().equals(String.class)) {
+                sb.append(mymeth);
+            } else {
+                sb.append("\"");
+                sb.append(mymeth);
+                sb.append("\"");
+            }
+                }
+            } catch (Exception ex){};
+        }
         sb.append("}");
         return sb.toString();
     }
 
-    public String getJavacriptFromPaths() {
+    public final String getJavacriptFromPaths() {
         StringBuilder sb = new StringBuilder();
         sb.append("var topGui = new GuiPropertyModel(");
+        System.out.println("Top level fields: ");
         sb.append(getContext());
         sb.append(").addChild(");
         sb.append(buildJavascriptMemory(this));
@@ -171,7 +231,7 @@ public abstract class GuiPropertyModel extends DevicePropertyNode implements Htm
         return sb.toString();
     }
 
-    public String buildJavascriptMemory(GuiPropertyModel tree) {
+    private String buildJavascriptMemory(GuiPropertyModel tree) {
         StringBuilder sb = new StringBuilder();
         sb.append("new ");
         sb.append(tree.getClassname());
@@ -229,22 +289,8 @@ public abstract class GuiPropertyModel extends DevicePropertyNode implements Htm
     public abstract String getJSONFunction() throws Exception;
 
     @Override
-    public final Response getJSON() throws Exception {
-        StringBuilder sb = new StringBuilder();
-        sb.append("var ");
-        sb.append(getName());
-        sb.append(" = new function() { \n");
-        sb.append(getJSONFunction());
-        sb.append("\n");
-        sb.append("this.loadJS = function() { \n");
-        sb.append("main()");
-        sb.append("};\n");
-        sb.append("};\n");
-        sb.append("function loadJS() { \n");
-        sb.append(getName());
-        sb.append(".loadJS() \n");
-        sb.append("} \n");
-        return Response.ok().entity(sb.toString()).build();
+    public Response getJSON() throws Exception {
+        return Response.ok().entity(getContext()).build();
     }
 
     @Override
