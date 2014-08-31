@@ -53,15 +53,28 @@ public abstract class GuiPropertyModel extends DevicePropertyNode implements Htm
      * </head>
      * <body>
      * <script type="text/javascript">
-     * function GuiPropertyModel(context) { if (context !== undefined) {
-     * this.myParent = context.parent || undefined; } alert("Made it " +
-     * context); GuiPropertyModel.prototype.showAlert = function(){
-     * alert(this.myParent); } }
+     * function GuiPropertyModel(context) { 
+     *    if (context !== undefined) {
+     *       this.myParent = context.parent || undefined;
+     *       this.d3ref = context.d3ref || undefined;
+     *    }
+     *    var children = [];
+     *    GuiPropertyModel.prototype.addChild = function(childGui) {
+     *       children[children.length] = childGui;
+     *       return this;
+     *    }
+     *    GuiPropertyModel.prototype.showAlert = function() {
+     *       alert(this.myParent); 
+     *    }
+     *    GuiPropertyModel.prototype.getD3 = function() {
+     *       return this.d3ref;
+     *    }
+     * }
      *
      * {@link #getJavascriptPrototypes()}
-     * {@link #getJavacriptFromPaths()} $(document).ready(function(){ var
-     * testbase = new GuiPropertyModel(); var testgui = new
-     * GUI({parent:testbase,unused:true}); testgui.showAlert();});
+     * $(document).ready(function(){
+     *    {@link #getJavacriptFromPaths()}
+     * });
      * </script> {@link #getMyHTML()}
      * </body>
      * </html>
@@ -114,10 +127,15 @@ public abstract class GuiPropertyModel extends DevicePropertyNode implements Htm
         sb.append("function ");
         sb.append(myClass.getClassname());
         sb.append("(context) {\n");
+        // call the super constructor
         if (extended.isAssignableFrom(GuiPropertyModel.class)) {
             sb.append(extended.getSimpleName());
             sb.append(".call(this, context);\n");
         }
+        // This is a great place to add local context variables
+        // now add global calls to local variables for class
+        sb.append("var d3ref = this.getD3();");
+        
         sb.append(myClass.getJSONFunction());
 
         sb.append("}\n");
@@ -134,70 +152,40 @@ public abstract class GuiPropertyModel extends DevicePropertyNode implements Htm
         }
         return sb.toString();
     }
-
-    public String getClassJavacript(GuiPropertyModel myNode) {
+    
+    public String getContext() {
         StringBuilder sb = new StringBuilder();
-        try {
-            if (myNode instanceof GuiPropertyModel) {
-                GuiPropertyModel myGui = (GuiPropertyModel) myNode;
-                sb.append("var ");
-                sb.append(myGui.getName());
-                sb.append(" = new function() { \n");
-                sb.append(myGui.getJSONFunction());
-                sb.append("\n");
-                sb.append("this.loadJS = function() { \n");
-                sb.append("main()");
-                sb.append("};\n");
-                sb.append("};\n");
-                sb.append("$(document).ready(");
-                sb.append(myGui.getName());
-                sb.append(".loadJS() \n");
-                sb.append(");\n");
-            }
-//                sb.append("$(document).ready(WidgetStarter(\"");
-//                sb.append(mpath);
-//                sb.append("\", function() {\n");
-//                sb.append("loadJS();\n");
-//                sb.append("        }));\n");
-        } catch (Exception ex) {
-            Logger.getLogger(GuiPropertyModel.class.getName()).log(Level.SEVERE, null, ex);
-        }
-
+        sb.append("{d3ref:");
+        sb.append(getD3Ref());
+        sb.append("}");
         return sb.toString();
     }
 
     public String getJavacriptFromPaths() {
         StringBuilder sb = new StringBuilder();
-        String[] paths = addPaths();
-        for (String mpath : paths) {
-            try {
-                DevicePropertyNode myNode = getPropertyNodeFromPath(mpath);
-                if (myNode instanceof GuiPropertyModel) {
-                    GuiPropertyModel myGui = (GuiPropertyModel) myNode;
-                    sb.append("var ");
-                    sb.append(myGui.getName());
-                    sb.append(" = new function() { \n");
-                    sb.append(myGui.getJSONFunction());
-                    sb.append("\n");
-                    sb.append("this.loadJS = function() { \n");
-                    sb.append("main()");
-                    sb.append("};\n");
-                    sb.append("};\n");
-                    sb.append("$(document).ready(");
-                    sb.append(myGui.getName());
-                    sb.append(".loadJS() \n");
-                    sb.append(");\n");
-                }
-//                sb.append("$(document).ready(WidgetStarter(\"");
-//                sb.append(mpath);
-//                sb.append("\", function() {\n");
-//                sb.append("loadJS();\n");
-//                sb.append("        }));\n");
-            } catch (Exception ex) {
-                Logger.getLogger(GuiPropertyModel.class.getName()).log(Level.SEVERE, null, ex);
+        sb.append("var topGui = new GuiPropertyModel(");
+        sb.append(getContext());
+        sb.append(").addChild(");
+        sb.append(buildJavascriptMemory(this));
+        sb.append(");");
+        return sb.toString();
+    }
+
+    public String buildJavascriptMemory(GuiPropertyModel tree) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("new ");
+        sb.append(tree.getClassname());
+        sb.append("(");
+        sb.append(tree.getContext());
+        sb.append(")");
+        for (DevicePropertyNode child : tree.getChildren()) {
+            if (child instanceof GuiPropertyModel) {
+                GuiPropertyModel cgui = (GuiPropertyModel) child;
+                sb.append(".addChild(");
+                sb.append(buildJavascriptMemory(cgui));
+                sb.append(")");
             }
         }
-
         return sb.toString();
     }
 
@@ -211,7 +199,16 @@ public abstract class GuiPropertyModel extends DevicePropertyNode implements Htm
     }
 
     public String getD3Ref() {
-        return "d3.select(\"div#" + getName() + "\")";
+        StringBuilder sb = new StringBuilder();
+        DevicePropertyNode parent = this;
+
+        while (parent instanceof GuiPropertyModel) {
+            sb.insert(0, ".select(\"div#" + parent.getName() + "\")");
+            parent = parent.getParent();
+        }
+        sb.insert(0, "d3");
+
+        return sb.toString();
     }
 
     public final String getMyHTML() throws Exception {
