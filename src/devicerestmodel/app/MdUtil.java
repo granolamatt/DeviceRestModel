@@ -6,6 +6,7 @@
 package devicerestmodel.app;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.StringReader;
 import java.io.StringWriter;
 import org.jdom2.Document;
@@ -41,6 +42,11 @@ public class MdUtil {
         output.setFormat(Format.getPrettyFormat());
         output.output(myDocument, string);
         return string.toString();
+    }
+
+    public static String convertStreamToString(java.io.InputStream is) {
+        java.util.Scanner s = new java.util.Scanner(is).useDelimiter("\\A");
+        return s.hasNext() ? s.next() : "";
     }
 
 }

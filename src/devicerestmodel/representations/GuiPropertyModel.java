@@ -5,9 +5,9 @@
  */
 package devicerestmodel.representations;
 
+import devicerestmodel.app.MdUtil;
 import java.awt.Color;
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -16,7 +16,6 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.ws.rs.core.Response;
-import org.adrianwalker.multilinestring.Multiline;
 
 /**
  *
@@ -32,6 +31,8 @@ public abstract class GuiPropertyModel extends DevicePropertyNode implements Htm
     private int padding = 0;
     private Color backgroundColor = null;
     private final HashMap<String, Method> myMethods = new HashMap<>();
+    private static final String basehtml
+            = MdUtil.convertStreamToString(ClassLoader.getSystemResourceAsStream("devicerestmodel/representations/GuiPropertyModel.html"));
 
     public GuiPropertyModel(String name, DevicePropertyNode parent) {
         super(name, parent);
@@ -42,62 +43,6 @@ public abstract class GuiPropertyModel extends DevicePropertyNode implements Htm
         super(parent);
         loadFields();
     }
-
-    /**
-     * <!DOCTYPE html>
-     * <html>
-     * <head>
-     * <script src="/resources/devicerestmodel/resources/d3.js"
-     * charset="utf-8"></script>
-     * <script src="/resources/devicerestmodel/resources/jquery.min.js"
-     * charset="utf-8"></script>
-     * <script src="/resources/devicerestmodel/resources/loader.js"
-     * charset="utf-8"></script>
-     * <meta charset="UTF-8">
-     * <title>{@link #getName()}</title>
-     * </head>
-     * <body>
-     * <script type="text/javascript">
-     * function GuiPropertyModel(context) { 
-     *    if (context !== undefined) {
-     *       this.myParent = context.parent || undefined;
-     *       this.d3ref = context.d3ref || undefined;
-     *    }
-     *    var children = [];
-     *    GuiPropertyModel.prototype.addChild = function(childGui) {
-     *       children[children.length] = childGui;
-     *       return this;
-     *    }
-     *    GuiPropertyModel.prototype.showAlert = function() {
-     *       alert(this.myParent); 
-     *    }
-     *    GuiPropertyModel.prototype.getD3 = function() {
-     *       return this.d3ref;
-     *    }
-     * }
-     *
-     * {@link #getJavascriptPrototypes()}
-     * $(document).ready(function(){
-     *    {@link #getJavacriptFromPaths()}
-     * });
-     * </script> {@link #getMyHTML()}
-     * </body>
-     * </html>
-     *
-     */
-    @Multiline
-    private static String basehtml;
-
-    /**
-     *
-     * <div id="{@link #getName()}" class="{@link #getClassname()}"
-     * style="{@link #getXposAttr()}{@link #getYposAttr()} {@link
-     * #getHeightAttr()}{@link #getWidthAttr()}{@link #getZIndexAttr()} {@link
-     * #getPaddingAttr()}{@link #getBackgroundColorAttr()} position: absolute">
-     *
-     */
-    @Multiline
-    private static String myhtml;
 
     public String getClassname() {
         return this.getClass().getSimpleName();
@@ -140,7 +85,7 @@ public abstract class GuiPropertyModel extends DevicePropertyNode implements Htm
         // This is a great place to add local context variables
         // now add global calls to local variables for class
         sb.append("var d3ref = this.getD3();");
-        
+
         sb.append(myClass.getJSONFunction());
 
         sb.append("}\n");
@@ -157,7 +102,7 @@ public abstract class GuiPropertyModel extends DevicePropertyNode implements Htm
         }
         return sb.toString();
     }
-    
+
     private void loadFields() {
         Class<?> extern = this.getClass();
 //        if (extern.isAssignableFrom(DevicePropertyNode.class)) {
@@ -172,49 +117,49 @@ public abstract class GuiPropertyModel extends DevicePropertyNode implements Htm
             }
             for (Method method : extern.getDeclaredMethods()) {
                 if (!java.lang.reflect.Modifier.isStatic(method.getModifiers())) {
-                String m = method.getName();
-                if (m.startsWith("get")) {
-                    m = m.replaceFirst("get", "").toLowerCase();
- 
-                
-                for (String match : fields) {
-                    if (m.equals(match)) {
-                        System.out.println("Method is " + method.getName() + " field " + match);
-                        myMethods.put(match, method);
-                        break;
+                    String m = method.getName();
+                    if (m.startsWith("get")) {
+                        m = m.replaceFirst("get", "").toLowerCase();
+
+                        for (String match : fields) {
+                            if (m.equals(match)) {
+                                System.out.println("Method is " + method.getName() + " field " + match);
+                                myMethods.put(match, method);
+                                break;
+                            }
+                        }
                     }
-                }
-                }
                 }
             }
             extern = extern.getSuperclass();
         }
 //        }
     }
-    
+
     public String getContext() {
         StringBuilder sb = new StringBuilder();
         sb.append("{d3ref:");
-        sb.append(getD3Ref()); 
-        
+        sb.append(getD3Ref());
+
         for (String key : myMethods.keySet()) {
             Method method = myMethods.get(key);
             try {
                 String mymeth = method.invoke(this).toString();
                 if (mymeth != null) {
-                sb.append(",");
-            sb.append(key);
-            sb.append(":");
-            
-            if (method.getReturnType().isPrimitive() && !method.getReturnType().equals(String.class)) {
-                sb.append(mymeth);
-            } else {
-                sb.append("\"");
-                sb.append(mymeth);
-                sb.append("\"");
-            }
+                    sb.append(",");
+                    sb.append(key);
+                    sb.append(":");
+
+                    if (method.getReturnType().isPrimitive() && !method.getReturnType().equals(String.class)) {
+                        sb.append(mymeth);
+                    } else {
+                        sb.append("\"");
+                        sb.append(mymeth);
+                        sb.append("\"");
+                    }
                 }
-            } catch (Exception ex){};
+            } catch (Exception ex) {
+            };
         }
         sb.append("}");
         return sb.toString();
@@ -273,7 +218,20 @@ public abstract class GuiPropertyModel extends DevicePropertyNode implements Htm
 
     public final String getMyHTML() throws Exception {
         StringBuilder sb = new StringBuilder();
-        sb.append(substituteVariablesWithMethod(myhtml, this));
+        sb.append("<div id=\"");
+        sb.append(getName());
+        sb.append("\" class=\"");
+        sb.append(getClassname());
+        sb.append("\"");
+        sb.append(" style=\"");
+        sb.append(getXposAttr());
+        sb.append(getYposAttr());
+        sb.append(getHeightAttr());
+        sb.append(getWidthAttr());
+        sb.append(getZIndexAttr());
+        sb.append(getPaddingAttr());
+        sb.append(getBackgroundColorAttr());
+        sb.append("position: absolute\">");
         ArrayList<DevicePropertyNode> children = getChildren();
         for (DevicePropertyNode node : children) {
             if (node instanceof GuiPropertyModel) {

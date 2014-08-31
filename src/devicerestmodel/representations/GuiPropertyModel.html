@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<!--
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+-->
+<html>
+    <head>
+        <title>{@link #getName()}</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <script src="/resources/devicerestmodel/resources/d3.js"
+        charset="utf-8"></script>
+        <script src="/resources/devicerestmodel/resources/jquery.min.js"
+        charset="utf-8"></script>
+        <script src="/resources/devicerestmodel/resources/loader.js"
+        charset="utf-8"></script>
+    </head>
+    <body>
+        <script type="text/javascript">
+            function GuiPropertyModel(context) {
+                if (context !== undefined) {
+                    this.myParent = context.parent || undefined;
+                    this.d3ref = context.d3ref || undefined;
+                }
+                var children = [];
+                GuiPropertyModel.prototype.addChild = function(childGui) {
+                    children[children.length] = childGui;
+                    return this;
+                }
+                GuiPropertyModel.prototype.showAlert = function() {
+                    alert(this.myParent);
+                }
+                GuiPropertyModel.prototype.getD3 = function() {
+                    return this.d3ref;
+                }
+            }
+
+            {@link #getJavascriptPrototypes()}
+            $(document).ready(function(){
+            {
+                @link #getJavacriptFromPaths()}
+            });
+        </script> 
+        {@link #getMyHTML()}
+    </body>
+</html>
