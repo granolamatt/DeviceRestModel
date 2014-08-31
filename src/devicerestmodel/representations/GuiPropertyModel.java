@@ -8,6 +8,7 @@ package devicerestmodel.representations;
 import java.awt.Color;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
@@ -57,7 +58,7 @@ public abstract class GuiPropertyModel extends DevicePropertyNode implements Htm
      * context); GuiPropertyModel.prototype.showAlert = function(){
      * alert(this.myParent); } }
      *
-     * {@link #getJavascriptPrototype()}
+     * {@link #getJavascriptPrototypes()}
      * {@link #getJavacriptFromPaths()} $(document).ready(function(){ var
      * testbase = new GuiPropertyModel(); var testgui = new
      * GUI({parent:testbase,unused:true}); testgui.showAlert();});
@@ -84,34 +85,84 @@ public abstract class GuiPropertyModel extends DevicePropertyNode implements Htm
         return this.getClass().getSimpleName();
     }
 
-    public String getJavascriptPrototype() {
+    public String getJavascriptPrototypes() {
         StringBuilder sb = new StringBuilder();
-        Class<?> extended = this.getClass().getSuperclass();
+        HashMap<String, GuiPropertyModel> mymap = new HashMap<>();
+        findChildren(this, mymap);
+        for (GuiPropertyModel classes : mymap.values()) {
+            try {
+                sb.append(getChildJavascript(classes));
+            } catch (Exception ex) {
+                Logger.getLogger(GuiPropertyModel.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+        return sb.toString();
+    }
+
+    private void findChildren(GuiPropertyModel parent, HashMap<String, GuiPropertyModel> mymap) {
+        mymap.put(parent.getClassname(), parent);
+        for (DevicePropertyNode node : parent.getChildren()) {
+            if (node instanceof GuiPropertyModel) {
+                findChildren((GuiPropertyModel) node, mymap);
+            }
+        }
+    }
+
+    private String getChildJavascript(GuiPropertyModel myClass) throws Exception {
+        StringBuilder sb = new StringBuilder();
+        Class<?> extended = myClass.getClass().getSuperclass();
         sb.append("function ");
-        sb.append(getClassname());
+        sb.append(myClass.getClassname());
         sb.append("(context) {\n");
         if (extended.isAssignableFrom(GuiPropertyModel.class)) {
             sb.append(extended.getSimpleName());
             sb.append(".call(this, context);\n");
         }
+        sb.append(myClass.getJSONFunction());
 
-//        sb.append("var parent = undefined;\n");
-//        sb.append("if ( arguments.length > 0) {\n");
-//        sb.append("   parent = arguments[0];\n");
-//        sb.append("   alert('from child' + parent);\n");
-//        sb.append("}\n");
         sb.append("}\n");
 
         if (extended.isAssignableFrom(GuiPropertyModel.class)) {
-            sb.append(getClassname());
+            sb.append(myClass.getClassname());
             sb.append(".prototype = Object.create(");
             sb.append(extended.getSimpleName());
             sb.append(".prototype);\n");
-//            sb.append(getClassname());
-//            sb.append(".prototype.constructor = ");
-//            sb.append(getClassname());
-//            sb.append(";\n");
+            sb.append(myClass.getClassname());
+            sb.append(".prototype.constructor = ");
+            sb.append(myClass.getClassname());
+            sb.append(";\n");
         }
+        return sb.toString();
+    }
+
+    public String getClassJavacript(GuiPropertyModel myNode) {
+        StringBuilder sb = new StringBuilder();
+        try {
+            if (myNode instanceof GuiPropertyModel) {
+                GuiPropertyModel myGui = (GuiPropertyModel) myNode;
+                sb.append("var ");
+                sb.append(myGui.getName());
+                sb.append(" = new function() { \n");
+                sb.append(myGui.getJSONFunction());
+                sb.append("\n");
+                sb.append("this.loadJS = function() { \n");
+                sb.append("main()");
+                sb.append("};\n");
+                sb.append("};\n");
+                sb.append("$(document).ready(");
+                sb.append(myGui.getName());
+                sb.append(".loadJS() \n");
+                sb.append(");\n");
+            }
+//                sb.append("$(document).ready(WidgetStarter(\"");
+//                sb.append(mpath);
+//                sb.append("\", function() {\n");
+//                sb.append("loadJS();\n");
+//                sb.append("        }));\n");
+        } catch (Exception ex) {
+            Logger.getLogger(GuiPropertyModel.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
         return sb.toString();
     }
 
