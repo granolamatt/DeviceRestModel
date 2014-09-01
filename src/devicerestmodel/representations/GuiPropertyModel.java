@@ -30,7 +30,7 @@ public abstract class GuiPropertyModel extends DevicePropertyNode implements Htm
     private int zindex = 1;
     private int padding = 0;
     private Color backgroundColor = null;
-    
+
     private final HashMap<String, Method> baseMethods = new HashMap<>();
     private final HashMap<String, Method> myMethods = new HashMap<>();
     private static final String basehtml
@@ -207,11 +207,11 @@ public abstract class GuiPropertyModel extends DevicePropertyNode implements Htm
         }
     }
 
-    public String getContext() {
+    public String getContext(GuiPropertyModel top) {
         StringBuilder sb = new StringBuilder();
         sb.append("\n{d3ref:");
-        sb.append(getD3Ref());
-        sb.append(",path:\"").append(getPathRef()).append("\"");
+        sb.append(getD3Ref(top));
+        sb.append(",path:\"").append(getPathRef(top)).append("\"");
         for (String key : baseMethods.keySet()) {
             Method method = baseMethods.get(key);
             try {
@@ -259,25 +259,25 @@ public abstract class GuiPropertyModel extends DevicePropertyNode implements Htm
     public final String getJavacriptFromPaths() {
         StringBuilder sb = new StringBuilder();
         sb.append("var topGui = new GuiPropertyModel(");
-        sb.append(getContext());
+        sb.append(getContext(this));
         sb.append(").addChild(");
-        sb.append(buildJavascriptMemory(this));
+        sb.append(buildJavascriptMemory(this, this));
         sb.append(");");
         return sb.toString();
     }
 
-    private String buildJavascriptMemory(GuiPropertyModel tree) {
+    private String buildJavascriptMemory(GuiPropertyModel tree, GuiPropertyModel top) {
         StringBuilder sb = new StringBuilder();
         sb.append("new ");
         sb.append(tree.getClassname());
         sb.append("(");
-        sb.append(tree.getContext());
+        sb.append(tree.getContext(top));
         sb.append(")");
         for (DevicePropertyNode child : tree.getChildren()) {
             if (child instanceof GuiPropertyModel) {
                 GuiPropertyModel cgui = (GuiPropertyModel) child;
                 sb.append(".addChild(");
-                sb.append(buildJavascriptMemory(cgui));
+                sb.append(buildJavascriptMemory(cgui, top));
                 sb.append(")");
             }
         }
@@ -293,26 +293,34 @@ public abstract class GuiPropertyModel extends DevicePropertyNode implements Htm
         return "";
     }
 
-    //XXX This will not work unless at top
-    public String getPathRef() {
+    public String getPathRef(GuiPropertyModel top) {
         StringBuilder sb = new StringBuilder();
         DevicePropertyNode parent = this;
 
         while (parent instanceof GuiPropertyModel) {
             sb.insert(0, parent.getRootPath());
             parent = parent.getParent();
+            // Path is from top to including top
+            if (parent.equals(top)) {
+                break;
+            }
         }
+        //XXX Delete leading / ??
+        // Could also include top and make absolute pathing??
+        sb.delete(0, 1);
 
         return sb.toString();
     }
 
-    //XXX This will not work unless at top
-    public String getD3Ref() {
+    public String getD3Ref(GuiPropertyModel top) {
         StringBuilder sb = new StringBuilder();
         DevicePropertyNode parent = this;
 
         while (parent instanceof GuiPropertyModel) {
             sb.insert(0, ".select(\"div#" + parent.getName() + "\")");
+            if (parent.equals(top)) {
+                break;
+            }
             parent = parent.getParent();
         }
         sb.insert(0, "d3");
@@ -352,7 +360,9 @@ public abstract class GuiPropertyModel extends DevicePropertyNode implements Htm
 
     @Override
     public Response getJSON() throws Exception {
-        return Response.ok().entity(getContext()).build();
+        System.out.println("Asked for json data!!!");
+        //XXX The path and d3ref will be off if sent back and not at top of tree
+        return Response.ok().entity(getContext(this)).build();
     }
 
     @Override
