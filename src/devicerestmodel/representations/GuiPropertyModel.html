@@ -1,9 +1,4 @@
 <!DOCTYPE html>
-<!--
-To change this license header, choose License Headers in Project Properties.
-To change this template file, choose Tools | Templates
-and open the template in the editor.
--->
 <html>
     <head>
         <title>{@link #getName()}</title>
@@ -19,29 +14,36 @@ and open the template in the editor.
     <body>
         <script type="text/javascript">
             function GuiPropertyModel(context) {
-            if (context !== undefined) {
-            this.myParent = context.parent || undefined;
+                if (context !== undefined) {
                     this.d3ref = context.d3ref || undefined;
+                    {@link #getBaseContextCtr()}
+                }
+                this.children = [];
             }
-            var children = [];
-                    GuiPropertyModel.prototype.addChild = function(childGui) {
-                    children[children.length] = childGui;
-                            return this;
-                    }
+
+            GuiPropertyModel.prototype.addChild = function(childGui) {
+                this.children[this.children.length] = childGui;
+                return this;
+            }
+            
+            GuiPropertyModel.prototype.getChildren = function() {
+                return this.children;
+            }
+
             GuiPropertyModel.prototype.showAlert = function() {
-            alert(this.myParent);
+                alert(this.myParent);
             }
+            
             GuiPropertyModel.prototype.getD3 = function() {
             return this.d3ref;
             }
-            {@link #getBaseContextMethods()}
-            }
+            
+{@link #getBaseContextMethods()}
 
-            {@link #getJavascriptPrototypes()}
-            $(document).ready(function(){
-            {
-            @link #getJavacriptFromPaths()}
-            });
+{@link #getJavascriptPrototypes()}
+$(document).ready(function(){
+{@link #getJavacriptFromPaths()}
+});
         </script> 
         {@link #getMyHTML()}
     </body>

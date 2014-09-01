@@ -81,9 +81,9 @@ public abstract class GuiPropertyModel extends DevicePropertyNode implements Htm
         }
         return sb.toString();
     }
-    
-        public String getContextMethods() {
-        StringBuilder sb = new StringBuilder();
+
+    public String getContextMethods() {
+        StringBuilder sb = new StringBuilder();       
         for (String key : myMethods.keySet()) {
             sb.append(this.getClassname());
             sb.append(".prototype.")
@@ -93,10 +93,32 @@ public abstract class GuiPropertyModel extends DevicePropertyNode implements Htm
         return sb.toString();
     }
 
+    public String getContextCtr() {
+        StringBuilder sb = new StringBuilder();
+        if (myMethods.size() > 0) {
+            sb.append("if (context !== undefined) {\n");
+        for (String key : myMethods.keySet()) {
+            sb.append("\nthis.").append(key).append(" = context.")
+                    .append(key).append(" || undefined;");
+        }
+        sb.append("\n}");
+        }
+        return sb.toString();
+    }
+
+    public String getBaseContextCtr() {
+        StringBuilder sb = new StringBuilder();
+        for (String key : baseMethods.keySet()) {
+            sb.append("\nthis.").append(key).append(" = context.")
+                    .append(key).append(" || undefined;");
+        }
+        return sb.toString();
+    }
+
     private String getChildJavascript(GuiPropertyModel myClass) throws Exception {
         StringBuilder sb = new StringBuilder();
         Class<?> extended = myClass.getClass().getSuperclass();
-        sb.append("function ");
+        sb.append("\nfunction ");
         sb.append(myClass.getClassname());
         sb.append("(context) {\n");
         // call the super constructor
@@ -104,19 +126,15 @@ public abstract class GuiPropertyModel extends DevicePropertyNode implements Htm
             sb.append(extended.getSimpleName());
             sb.append(".call(this, context);\n");
         }
-        sb.append(getContextMethods());
-        // This is a great place to add local context variables
-        // now add global calls to local variables for class
-        sb.append("var d3ref = this.getD3();\n");
-        for (String key : baseMethods.keySet()) {
-            sb.append("var ").append(key).append(" = this.").append(baseMethods.get(key).getName()).append("();\n");
-        }
-        for (String key : myMethods.keySet()) {
-            sb.append("var ").append(key).append(" = this.").append(myMethods.get(key).getName()).append("();\n");
-        }
+        sb.append(myClass.getContextCtr());
+
+        // Get a reference to base object
+        // can't use this inside functions
+        sb.append("\nvar REF = this;\n");
+
         sb.append(myClass.getJSONFunction());
 
-        sb.append("}\n");
+        sb.append("\n}\n");
 
         if (extended.isAssignableFrom(GuiPropertyModel.class)) {
             sb.append(myClass.getClassname());
@@ -128,6 +146,8 @@ public abstract class GuiPropertyModel extends DevicePropertyNode implements Htm
             sb.append(myClass.getClassname());
             sb.append(";\n");
         }
+        sb.append(myClass.getContextMethods());
+
         return sb.toString();
     }
 
@@ -174,6 +194,7 @@ public abstract class GuiPropertyModel extends DevicePropertyNode implements Htm
 
                         for (String match : fields) {
                             if (m.equals(match)) {
+                                System.out.println("Adding method " + method.getName() + " key " + match);
                                 myMethods.put(match, method);
                                 break;
                             }
@@ -236,7 +257,6 @@ public abstract class GuiPropertyModel extends DevicePropertyNode implements Htm
     public final String getJavacriptFromPaths() {
         StringBuilder sb = new StringBuilder();
         sb.append("var topGui = new GuiPropertyModel(");
-        System.out.println("Top level fields: ");
         sb.append(getContext());
         sb.append(").addChild(");
         sb.append(buildJavascriptMemory(this));
@@ -489,8 +509,8 @@ public abstract class GuiPropertyModel extends DevicePropertyNode implements Htm
     public Color getJBackgroundColor() {
         return backgroundColor;
     }
-    
-        /**
+
+    /**
      * @return the color
      */
     public String getBackgroundColor() {
