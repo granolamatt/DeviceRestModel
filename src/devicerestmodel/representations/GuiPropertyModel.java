@@ -15,6 +15,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 /**
@@ -208,18 +209,26 @@ public abstract class GuiPropertyModel extends DevicePropertyNode implements Htm
     }
 
     public String getContext(GuiPropertyModel top) {
+        return getContext(top, true);
+    }
+
+    public String getContext(GuiPropertyModel top, boolean addpath) {
         StringBuilder sb = new StringBuilder();
-        sb.append("\n{d3ref:");
-        sb.append(getD3Ref(top));
-        sb.append(",path:\"").append(getPathRef(top)).append("\"");
+        if (addpath) {
+            sb.append("\n{\"d3ref\":");
+            sb.append(getD3Ref(top));
+            sb.append(",\"path\":'").append(getPathRef(top)).append("'");
+        } else {
+            sb.append("\n{\"info\":\"nopath\"");
+        }
         for (String key : baseMethods.keySet()) {
             Method method = baseMethods.get(key);
             try {
                 String mymeth = method.invoke(this).toString();
                 if (mymeth != null) {
-                    sb.append(",");
+                    sb.append(",\"");
                     sb.append(key);
-                    sb.append(":");
+                    sb.append("\":");
 
                     if (method.getReturnType().isPrimitive() && !method.getReturnType().equals(String.class)) {
                         sb.append(mymeth);
@@ -237,9 +246,9 @@ public abstract class GuiPropertyModel extends DevicePropertyNode implements Htm
             try {
                 String mymeth = method.invoke(this).toString();
                 if (mymeth != null) {
-                    sb.append(",");
+                    sb.append(",\"");
                     sb.append(key);
-                    sb.append(":");
+                    sb.append("\":");
 
                     if (method.getReturnType().isPrimitive() && !method.getReturnType().equals(String.class)) {
                         sb.append(mymeth);
@@ -299,15 +308,13 @@ public abstract class GuiPropertyModel extends DevicePropertyNode implements Htm
 
         while (parent instanceof GuiPropertyModel) {
             sb.insert(0, parent.getRootPath());
-            parent = parent.getParent();
-            // Path is from top to including top
             if (parent.equals(top)) {
                 break;
             }
+            parent = parent.getParent();
         }
-        //XXX Delete leading / ??
         // Could also include top and make absolute pathing??
-        sb.delete(0, 1);
+//        sb.insert(0, "..");
 
         return sb.toString();
     }
@@ -360,9 +367,11 @@ public abstract class GuiPropertyModel extends DevicePropertyNode implements Htm
 
     @Override
     public Response getJSON() throws Exception {
-        System.out.println("Asked for json data!!!");
+        //System.out.println("Asked for json data!!! ");
         //XXX The path and d3ref will be off if sent back and not at top of tree
-        return Response.ok().entity(getContext(this)).build();
+        String sb = getContext(this, false);
+        System.out.println("Sending: " + sb);
+         return Response.ok().entity(sb).build();
     }
 
     @Override
