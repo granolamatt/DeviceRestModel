@@ -13,37 +13,57 @@
     </head>
     <body>
         <script type="text/javascript">
-            function GuiPropertyModel(context) {
-                if (context !== undefined) {
+                    function GuiPropertyModel(context) {
+                    if (context !== undefined) {
                     this.d3ref = context.d3ref || undefined;
+                    this.path = context.path || undefined;
                     {@link #getBaseContextCtr()}
-                }
-                this.children = [];
+                    }
+                    this.children = [];
+                    }
+
+            GuiPropertyModel.prototype.updateContext = function() {
+            if (path !== undefined) {
+            $.ajax({type: "GET",
+                    url: path,
+                    success: function(json){alert(json)} ,
+                    headers:
+            {
+            Accept: "application/json; charset=utf-8",
+                    "Content-Type": "text/xml; charset=utf-8"
+            },
+                    dataType: "json"
+            });
+            }
             }
 
             GuiPropertyModel.prototype.addChild = function(childGui) {
-                this.children[this.children.length] = childGui;
-                return this;
+            this.children[this.children.length] = childGui;
+                    return this;
             }
-            
+
             GuiPropertyModel.prototype.getChildren = function() {
-                return this.children;
+            return this.children;
             }
 
             GuiPropertyModel.prototype.showAlert = function() {
-                alert(this.myParent);
+            alert(this.myParent);
             }
-            
+
             GuiPropertyModel.prototype.getD3 = function() {
             return this.d3ref;
             }
-            
-{@link #getBaseContextMethods()}
 
-{@link #getJavascriptPrototypes()}
-$(document).ready(function(){
-{@link #getJavacriptFromPaths()}
-});
+            GuiPropertyModel.prototype.getPath = function() {
+            return this.path;
+            }
+
+            {@link #getBaseContextMethods()}
+
+            {@link #getJavascriptPrototypes()}
+            $(document).ready(function(){
+            {@link #getJavacriptFromPaths()}
+            });
         </script> 
         {@link #getMyHTML()}
     </body>

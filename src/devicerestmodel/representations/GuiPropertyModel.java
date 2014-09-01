@@ -30,6 +30,7 @@ public abstract class GuiPropertyModel extends DevicePropertyNode implements Htm
     private int zindex = 1;
     private int padding = 0;
     private Color backgroundColor = null;
+    
     private final HashMap<String, Method> baseMethods = new HashMap<>();
     private final HashMap<String, Method> myMethods = new HashMap<>();
     private static final String basehtml
@@ -83,7 +84,7 @@ public abstract class GuiPropertyModel extends DevicePropertyNode implements Htm
     }
 
     public String getContextMethods() {
-        StringBuilder sb = new StringBuilder();       
+        StringBuilder sb = new StringBuilder();
         for (String key : myMethods.keySet()) {
             sb.append(this.getClassname());
             sb.append(".prototype.")
@@ -97,11 +98,11 @@ public abstract class GuiPropertyModel extends DevicePropertyNode implements Htm
         StringBuilder sb = new StringBuilder();
         if (myMethods.size() > 0) {
             sb.append("if (context !== undefined) {\n");
-        for (String key : myMethods.keySet()) {
-            sb.append("\nthis.").append(key).append(" = context.")
-                    .append(key).append(" || undefined;");
-        }
-        sb.append("\n}");
+            for (String key : myMethods.keySet()) {
+                sb.append("\nthis.").append(key).append(" = context.")
+                        .append(key).append(" || undefined;");
+            }
+            sb.append("\n}");
         }
         return sb.toString();
     }
@@ -210,6 +211,7 @@ public abstract class GuiPropertyModel extends DevicePropertyNode implements Htm
         StringBuilder sb = new StringBuilder();
         sb.append("\n{d3ref:");
         sb.append(getD3Ref());
+        sb.append(",path:\"").append(getPathRef()).append("\"");
         for (String key : baseMethods.keySet()) {
             Method method = baseMethods.get(key);
             try {
@@ -291,6 +293,20 @@ public abstract class GuiPropertyModel extends DevicePropertyNode implements Htm
         return "";
     }
 
+    //XXX This will not work unless at top
+    public String getPathRef() {
+        StringBuilder sb = new StringBuilder();
+        DevicePropertyNode parent = this;
+
+        while (parent instanceof GuiPropertyModel) {
+            sb.insert(0, parent.getRootPath());
+            parent = parent.getParent();
+        }
+
+        return sb.toString();
+    }
+
+    //XXX This will not work unless at top
     public String getD3Ref() {
         StringBuilder sb = new StringBuilder();
         DevicePropertyNode parent = this;
