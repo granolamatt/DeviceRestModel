@@ -44,7 +44,8 @@ public class MdUtil {
         return string.toString();
     }
 
-    public static String convertStreamToString(java.io.InputStream is) {
+    public static String convertStreamToString(String resource) {
+        InputStream is = ClassLoader.getSystemResourceAsStream(resource);
         java.util.Scanner s = new java.util.Scanner(is).useDelimiter("\\A");
         return s.hasNext() ? s.next() : "";
     }

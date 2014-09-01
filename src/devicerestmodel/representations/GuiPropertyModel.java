@@ -30,9 +30,10 @@ public abstract class GuiPropertyModel extends DevicePropertyNode implements Htm
     private int zindex = 1;
     private int padding = 0;
     private Color backgroundColor = null;
+    private final HashMap<String, Method> baseMethods = new HashMap<>();
     private final HashMap<String, Method> myMethods = new HashMap<>();
     private static final String basehtml
-            = MdUtil.convertStreamToString(ClassLoader.getSystemResourceAsStream("devicerestmodel/representations/GuiPropertyModel.html"));
+            = MdUtil.convertStreamToString("devicerestmodel/representations/GuiPropertyModel.html");
 
     public GuiPropertyModel(String name, DevicePropertyNode parent) {
         super(name, parent);
@@ -71,10 +72,21 @@ public abstract class GuiPropertyModel extends DevicePropertyNode implements Htm
         }
     }
 
-    public String getContextMethods() {
+    public String getBaseContextMethods() {
+        StringBuilder sb = new StringBuilder();
+        for (String key : baseMethods.keySet()) {
+            sb.append("GuiPropertyModel.prototype.")
+                    .append(baseMethods.get(key).getName()).append(" = function() {\n");
+            sb.append("return this.").append(key).append(";\n}\n");
+        }
+        return sb.toString();
+    }
+    
+        public String getContextMethods() {
         StringBuilder sb = new StringBuilder();
         for (String key : myMethods.keySet()) {
-            sb.append("GuiPropertyModel.prototype.")
+            sb.append(this.getClassname());
+            sb.append(".prototype.")
                     .append(myMethods.get(key).getName()).append(" = function() {\n");
             sb.append("return this.").append(key).append(";\n}\n");
         }
@@ -92,13 +104,16 @@ public abstract class GuiPropertyModel extends DevicePropertyNode implements Htm
             sb.append(extended.getSimpleName());
             sb.append(".call(this, context);\n");
         }
+        sb.append(getContextMethods());
         // This is a great place to add local context variables
         // now add global calls to local variables for class
         sb.append("var d3ref = this.getD3();\n");
+        for (String key : baseMethods.keySet()) {
+            sb.append("var ").append(key).append(" = this.").append(baseMethods.get(key).getName()).append("();\n");
+        }
         for (String key : myMethods.keySet()) {
             sb.append("var ").append(key).append(" = this.").append(myMethods.get(key).getName()).append("();\n");
         }
-
         sb.append(myClass.getJSONFunction());
 
         sb.append("}\n");
@@ -117,10 +132,33 @@ public abstract class GuiPropertyModel extends DevicePropertyNode implements Htm
     }
 
     private void loadFields() {
+
+        ArrayList<String> baseFields = new ArrayList<>();
+        for (Field field : GuiPropertyModel.class.getDeclaredFields()) {
+            if (!java.lang.reflect.Modifier.isStatic(field.getModifiers())) {
+                String f = field.getName().toLowerCase();
+                baseFields.add(f);
+            }
+        }
+        for (Method method : GuiPropertyModel.class.getDeclaredMethods()) {
+            if (!java.lang.reflect.Modifier.isStatic(method.getModifiers())) {
+                String m = method.getName();
+                if (m.startsWith("get")) {
+                    m = m.replaceFirst("get", "").toLowerCase();
+
+                    for (String match : baseFields) {
+                        if (m.equals(match)) {
+//                                System.out.println("Method is " + method.getName() + " field " + match);
+                            baseMethods.put(match, method);
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
         Class<?> extern = this.getClass();
-//        if (extern.isAssignableFrom(DevicePropertyNode.class)) {
-        while (!extern.equals(DevicePropertyNode.class)) {
-//            System.out.println("Class type is " + extern.getSimpleName());
+        while (!extern.equals(GuiPropertyModel.class)) {
             ArrayList<String> fields = new ArrayList<>();
             for (Field field : extern.getDeclaredFields()) {
                 if (!java.lang.reflect.Modifier.isStatic(field.getModifiers())) {
@@ -136,7 +174,6 @@ public abstract class GuiPropertyModel extends DevicePropertyNode implements Htm
 
                         for (String match : fields) {
                             if (m.equals(match)) {
-//                                System.out.println("Method is " + method.getName() + " field " + match);
                                 myMethods.put(match, method);
                                 break;
                             }
@@ -146,7 +183,6 @@ public abstract class GuiPropertyModel extends DevicePropertyNode implements Htm
             }
             extern = extern.getSuperclass();
         }
-//        }
     }
 
     public String getContext() {
@@ -154,6 +190,26 @@ public abstract class GuiPropertyModel extends DevicePropertyNode implements Htm
         sb.append("{d3ref:");
         sb.append(getD3Ref());
 
+        for (String key : baseMethods.keySet()) {
+            Method method = baseMethods.get(key);
+            try {
+                String mymeth = method.invoke(this).toString();
+                if (mymeth != null) {
+                    sb.append(",");
+                    sb.append(key);
+                    sb.append(":");
+
+                    if (method.getReturnType().isPrimitive() && !method.getReturnType().equals(String.class)) {
+                        sb.append(mymeth);
+                    } else {
+                        sb.append("\"");
+                        sb.append(mymeth);
+                        sb.append("\"");
+                    }
+                }
+            } catch (Exception ex) {
+            };
+        }
         for (String key : myMethods.keySet()) {
             Method method = myMethods.get(key);
             try {

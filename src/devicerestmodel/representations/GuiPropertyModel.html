@@ -19,28 +19,28 @@ and open the template in the editor.
     <body>
         <script type="text/javascript">
             function GuiPropertyModel(context) {
-                if (context !== undefined) {
-                    this.myParent = context.parent || undefined;
+            if (context !== undefined) {
+            this.myParent = context.parent || undefined;
                     this.d3ref = context.d3ref || undefined;
-                }
-                var children = [];
-                GuiPropertyModel.prototype.addChild = function(childGui) {
+            }
+            var children = [];
+                    GuiPropertyModel.prototype.addChild = function(childGui) {
                     children[children.length] = childGui;
-                    return this;
-                }
-                GuiPropertyModel.prototype.showAlert = function() {
-                    alert(this.myParent);
-                }
-                GuiPropertyModel.prototype.getD3 = function() {
-                    return this.d3ref;
-                }
-                {@link #getContextMethods()}
+                            return this;
+                    }
+            GuiPropertyModel.prototype.showAlert = function() {
+            alert(this.myParent);
+            }
+            GuiPropertyModel.prototype.getD3 = function() {
+            return this.d3ref;
+            }
+            {@link #getBaseContextMethods()}
             }
 
             {@link #getJavascriptPrototypes()}
             $(document).ready(function(){
             {
-                @link #getJavacriptFromPaths()}
+            @link #getJavacriptFromPaths()}
             });
         </script> 
         {@link #getMyHTML()}
