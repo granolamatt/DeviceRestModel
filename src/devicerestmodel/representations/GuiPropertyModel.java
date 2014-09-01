@@ -187,9 +187,8 @@ public abstract class GuiPropertyModel extends DevicePropertyNode implements Htm
 
     public String getContext() {
         StringBuilder sb = new StringBuilder();
-        sb.append("{d3ref:");
+        sb.append("\n{d3ref:");
         sb.append(getD3Ref());
-
         for (String key : baseMethods.keySet()) {
             Method method = baseMethods.get(key);
             try {
@@ -228,9 +227,9 @@ public abstract class GuiPropertyModel extends DevicePropertyNode implements Htm
                     }
                 }
             } catch (Exception ex) {
-            };
+            }
         }
-        sb.append("}");
+        sb.append("}\n");
         return sb.toString();
     }
 
@@ -487,8 +486,15 @@ public abstract class GuiPropertyModel extends DevicePropertyNode implements Htm
     /**
      * @return the color
      */
-    public Color getBackgroundColor() {
+    public Color getJBackgroundColor() {
         return backgroundColor;
+    }
+    
+        /**
+     * @return the color
+     */
+    public String getBackgroundColor() {
+        return "#" + getInternetColor(backgroundColor);
     }
 
     /**
