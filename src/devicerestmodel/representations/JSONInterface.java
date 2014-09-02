@@ -6,6 +6,7 @@
 
 package devicerestmodel.representations;
 
+import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.core.Response;
 
 /**
@@ -27,8 +28,8 @@ public interface JSONInterface {
 //        return mystring;
 //    }
     
-    public Response getJSON() throws Exception;
     public void setJSON(String json) throws Exception;
     public void updateJSON(String json) throws Exception;
+    public Response getJSON(ContainerRequestContext containerRequestContext) throws Exception;
 
 }

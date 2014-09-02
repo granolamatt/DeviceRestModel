@@ -41,6 +41,7 @@
                     if (this.path) {
             $.ajax({type: "GET",
                     url: this.path,
+                    data: "data=context",
                     success: function(context) {
                     REF.updateContext(context);
                     },

@@ -15,7 +15,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 
 /**
@@ -150,7 +152,7 @@ public abstract class GuiPropertyModel extends DevicePropertyNode implements Htm
                     .append(extended.getSimpleName())
                     .append(".prototype.updateContext.call(context);\n")
                     .append(myClass.getContextCtr()).append("return this; \n"
-                    + "};\n");
+                            + "};\n");
 
             sb.append(myClass.getClassname());
             sb.append(".prototype.constructor = ");
@@ -376,8 +378,12 @@ public abstract class GuiPropertyModel extends DevicePropertyNode implements Htm
     public abstract String getJSONFunction() throws Exception;
 
     @Override
-    public Response getJSON() throws Exception {
+    public Response getJSON(ContainerRequestContext containerRequestContext) throws Exception {
         //System.out.println("Asked for json data!!! ");
+        MultivaluedMap<String, String> qp = containerRequestContext.getUriInfo().getQueryParameters();
+        for (String key : qp.keySet()) {
+            System.out.println("Got request " + key + " val " + qp.get(key));
+        }
         String sb = getContext(this, false);
 
         return Response.ok().entity(sb).build();
@@ -385,7 +391,7 @@ public abstract class GuiPropertyModel extends DevicePropertyNode implements Htm
     }
 
     @Override
-    public final Response getHTML() throws Exception {
+    public final Response getHTML(ContainerRequestContext containerRequestContext) throws Exception {
         return Response.ok().entity(getHTMLDocument()).build();
     }
 

@@ -6,6 +6,7 @@
 
 package devicerestmodel.representations;
 
+import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.core.Response;
 
 /**
@@ -27,6 +28,6 @@ public interface HtmlInterface {
 //        return mystring;
 //    }
     
-    public Response getHTML() throws Exception;
+    public Response getHTML(ContainerRequestContext containerRequestContext) throws Exception;
     
 }

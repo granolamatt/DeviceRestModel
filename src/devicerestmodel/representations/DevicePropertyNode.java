@@ -11,6 +11,7 @@ import java.beans.PropertyChangeSupport;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.ws.rs.container.ContainerRequestContext;
 import org.jdom2.Element;
 
 /**
@@ -63,19 +64,24 @@ public abstract class DevicePropertyNode implements PropertyChangeListener {
     public synchronized final void addChild(DevicePropertyNode child) {
         children.add(child);
     }
+    
+    public synchronized final Element getXml() throws Exception {
+        return getXml(null);
+    }
 
     /**
      * Retrieve the current value of the device. This can be from a virtual
-     * value or from the actual hardware.
+     * value or from the actual hard
      *
+     * @param containerRequestContext
      * @return
      * @throws Exception
      */
-    public synchronized final Element getXml() throws Exception {
+    public synchronized final Element getXml(ContainerRequestContext containerRequestContext) throws Exception {
         Element root = getElement();
 
         for (DevicePropertyNode node : children) {
-            root.addContent(node.getXml());
+            root.addContent(node.getXml(containerRequestContext));
         }
 
         return root;
@@ -127,6 +133,7 @@ public abstract class DevicePropertyNode implements PropertyChangeListener {
         Element element = new Element(getName());
         return element;
     }
+
 
     /**
      * Set the current value in the device. This can set a virtual value or the

@@ -196,7 +196,7 @@ public final class ResourceBase extends ResourceConfig {
                         System.out.println("Got a GET for " + path);
                         LoggerOut.println("Get a GET for " + path);
                         Document myDocument = new Document();
-                        myDocument.setRootElement(element.getXml());
+                        myDocument.setRootElement(element.getXml(containerRequestContext));
                         return Response.ok().type(MediaType.APPLICATION_XML).entity(MdUtil.document2XmlString(myDocument)).build();
                     } else {
                         return Response.status(Response.Status.NOT_FOUND).build();
@@ -266,7 +266,7 @@ public final class ResourceBase extends ResourceConfig {
                         LoggerOut.println("Setting json to " + path + " Element " + jsonString);
 
                         element.setJSON(jsonString);
-                        return Response.ok().type(MediaType.APPLICATION_JSON).entity(element.getJSON()).build();
+                        return Response.ok().type(MediaType.APPLICATION_JSON).build();
                     } else {
                         return Response.status(Response.Status.NOT_FOUND).build();
                     }
@@ -294,7 +294,7 @@ public final class ResourceBase extends ResourceConfig {
                     if (containerRequestContext.getMethod().equals("GET")) {
                         System.out.println("Got a json GET for " + path);
                         LoggerOut.println("Get a GET for " + path);
-                        return element.getJSON();
+                        return element.getJSON(containerRequestContext);
                     } else {
                         return Response.status(Response.Status.NOT_FOUND).build();
                     }
@@ -353,7 +353,7 @@ public final class ResourceBase extends ResourceConfig {
                     if (containerRequestContext.getMethod().equals("GET")) {
                         System.out.println("Got a GET for " + path);
                         LoggerOut.println("Get a GET for " + path);
-                        return element.getHTML();
+                        return element.getHTML(containerRequestContext);
                     } else {
                         return Response.status(Response.Status.NOT_FOUND).build();
                     }
