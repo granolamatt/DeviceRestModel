@@ -98,10 +98,11 @@ public abstract class GuiPropertyModel extends DevicePropertyNode implements Htm
     public String getContextCtr() {
         StringBuilder sb = new StringBuilder();
         if (myMethods.size() > 0) {
-            sb.append("if (context !== undefined) {\n");
+            sb.append("if (context) {\n");
             for (String key : myMethods.keySet()) {
-                sb.append("\nthis.").append(key).append(" = context.")
-                        .append(key).append(" || undefined;");
+                sb.append("if (context.").append(key).append(" != undefined) { REF.")
+                        .append(key).append(" = context.")
+                        .append(key).append("}\n");
             }
             sb.append("\n}");
         }
@@ -111,8 +112,9 @@ public abstract class GuiPropertyModel extends DevicePropertyNode implements Htm
     public String getBaseContextCtr() {
         StringBuilder sb = new StringBuilder();
         for (String key : baseMethods.keySet()) {
-            sb.append("\nthis.").append(key).append(" = context.")
-                    .append(key).append(" || undefined;");
+                sb.append("if (context.").append(key).append(" != undefined) { REF.")
+                        .append(key).append(" = context.")
+                        .append(key).append("}\n");
         }
         return sb.toString();
     }
@@ -123,6 +125,7 @@ public abstract class GuiPropertyModel extends DevicePropertyNode implements Htm
         sb.append("\nfunction ");
         sb.append(myClass.getClassname());
         sb.append("(context) {\n");
+        sb.append("\nvar REF = this;\n");
         // call the super constructor
         if (extended.isAssignableFrom(GuiPropertyModel.class)) {
             sb.append(extended.getSimpleName());
@@ -132,7 +135,7 @@ public abstract class GuiPropertyModel extends DevicePropertyNode implements Htm
 
         // Get a reference to base object
         // can't use this inside functions
-        sb.append("\nvar REF = this;\n");
+        
 
         sb.append(myClass.getJSONFunction());
 
@@ -147,6 +150,7 @@ public abstract class GuiPropertyModel extends DevicePropertyNode implements Htm
             sb.append(".prototype.constructor = ");
             sb.append(myClass.getClassname());
             sb.append(";\n");
+            //XXX extend getContext function
         }
         sb.append(myClass.getContextMethods());
 
@@ -370,8 +374,9 @@ public abstract class GuiPropertyModel extends DevicePropertyNode implements Htm
         //System.out.println("Asked for json data!!! ");
         //XXX The path and d3ref will be off if sent back and not at top of tree
         String sb = getContext(this, false);
-        System.out.println("Sending: " + sb);
+        
          return Response.ok().entity(sb).build();
+//         return Response.ok().entity("{\"info\":\"update\"}").build();
     }
 
     @Override

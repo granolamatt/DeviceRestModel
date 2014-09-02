@@ -14,48 +14,41 @@
     <body>
         <script type="text/javascript">
                     function GuiPropertyModel(context) {
-                    if (context !== undefined) {
-                    this.d3ref = context.d3ref || undefined;
-                            this.path = context.path || undefined;
+                    var REF = this;
+                            if (context) {
+                    if (context.d3ref != undefined ) { REF.d3ref = context.d3ref }
+                    if (context.path != undefined ) { REF.path = context.path }
                     {@link #getBaseContextCtr()}
                     }
                     this.children = [];
                     }
 
-            GuiPropertyModel.prototype.updateContext = function() {
-            if (this.path !== undefined) {
-            var xmlhttp;
-                    if (window.XMLHttpRequest)
-            {// code for IE7+, Firefox, Chrome, Opera, Safari
-            xmlhttp = new XMLHttpRequest();
-            }
-            else
-            {// code for IE6, IE5
-            xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
-            }
-            xmlhttp.onreadystatechange = function()
-            {
-            if (xmlhttp.readyState == 4 && xmlhttp.status == 200)
-            {
-            var text = '{"employees":[' +
-                    '{"firstName":4,"lastName":"Doe" },' +
-                    '{"firstName":5,"lastName":"Smith" },' +
-                    '{"firstName":2,"lastName":"Jones" }]}';
-//                alert("got " + xmlhttp.responseText);
-            var context = JSON.parse(xmlhttp.responseText);
+            GuiPropertyModel.prototype.updateContext = function(context) {
+
+            var REF = this;
+
+                    if (context) {
             {@link #getBaseContextCtr()}
-//                    var respJSON = JSON.parse(text);
-//                    alert("got " + xmlhttp.responseText + " val " + context.info);
             }
+             
+            return this;
             }
-            xmlhttp.open("GET", this.path, true);
-                    xmlhttp.setRequestHeader("Accept", "application/json");
-                    // Handle network errors
-                    xmlhttp.onerror = function() {
-                    reject(Error("Network Error"));
-                    };
-                    // Make the request
-                    xmlhttp.send();
+
+            GuiPropertyModel.prototype.getNewContext = function() {
+
+            var REF = this;
+                    if (this.path) {
+            $.ajax({type: "GET",
+                    url: this.path,
+                    success: function(context) {
+                    REF.updateContext(context);
+                    },
+                    headers:
+            {
+            "Accept": "application/json; charset=utf-8",
+                    "Content-Type": "application/json; charset=utf-8"
+            }
+            });
             }
             }
 
