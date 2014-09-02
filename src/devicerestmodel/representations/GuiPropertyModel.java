@@ -112,9 +112,9 @@ public abstract class GuiPropertyModel extends DevicePropertyNode implements Htm
     public String getBaseContextCtr() {
         StringBuilder sb = new StringBuilder();
         for (String key : baseMethods.keySet()) {
-                sb.append("if (context.").append(key).append(" != undefined) { REF.")
-                        .append(key).append(" = context.")
-                        .append(key).append("}\n");
+            sb.append("if (context.").append(key).append(" != undefined) { REF.")
+                    .append(key).append(" = context.")
+                    .append(key).append("}\n");
         }
         return sb.toString();
     }
@@ -135,8 +135,6 @@ public abstract class GuiPropertyModel extends DevicePropertyNode implements Htm
 
         // Get a reference to base object
         // can't use this inside functions
-        
-
         sb.append(myClass.getJSONFunction());
 
         sb.append("\n}\n");
@@ -146,11 +144,19 @@ public abstract class GuiPropertyModel extends DevicePropertyNode implements Htm
             sb.append(".prototype = Object.create(");
             sb.append(extended.getSimpleName());
             sb.append(".prototype);\n");
+
+            sb.append(myClass.getClassname());
+            sb.append(".prototype.updateContext  = function(context) {\n var REF = this;\n")
+                    .append(extended.getSimpleName())
+                    .append(".prototype.updateContext.call(context);\n")
+                    .append(myClass.getContextCtr()).append("return this; \n"
+                    + "};\n");
+
             sb.append(myClass.getClassname());
             sb.append(".prototype.constructor = ");
             sb.append(myClass.getClassname());
             sb.append(";\n");
-            //XXX extend getContext function
+
         }
         sb.append(myClass.getContextMethods());
 
@@ -318,7 +324,7 @@ public abstract class GuiPropertyModel extends DevicePropertyNode implements Htm
             parent = parent.getParent();
         }
         // Could also include top and make absolute pathing??
-//        sb.insert(0, "..");
+        sb.insert(0, "..");
 
         return sb.toString();
     }
@@ -372,10 +378,9 @@ public abstract class GuiPropertyModel extends DevicePropertyNode implements Htm
     @Override
     public Response getJSON() throws Exception {
         //System.out.println("Asked for json data!!! ");
-        //XXX The path and d3ref will be off if sent back and not at top of tree
         String sb = getContext(this, false);
-        
-         return Response.ok().entity(sb).build();
+
+        return Response.ok().entity(sb).build();
 //         return Response.ok().entity("{\"info\":\"update\"}").build();
     }
 
