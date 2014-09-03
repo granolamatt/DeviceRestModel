@@ -150,7 +150,7 @@ public abstract class GuiPropertyModel extends DevicePropertyNode implements Htm
             sb.append(myClass.getClassname());
             sb.append(".prototype.updateContext  = function(context) {\n var REF = this;\n")
                     .append(extended.getSimpleName())
-                    .append(".prototype.updateContext.call(context);\n")
+                    .append(".prototype.updateContext.call(this, context);\n")
                     .append(myClass.getContextCtr()).append("return this; \n"
                             + "};\n");
 
@@ -385,6 +385,7 @@ public abstract class GuiPropertyModel extends DevicePropertyNode implements Htm
             System.out.println("Got request " + key + " val " + qp.get(key));
         }
         String sb = getContext(this, false);
+        System.out.println("Sending " + sb);
 
         return Response.ok().entity(sb).build();
 //         return Response.ok().entity("{\"info\":\"update\"}").build();
