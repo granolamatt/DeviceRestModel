@@ -33,6 +33,9 @@ public abstract class GuiPropertyModel extends DevicePropertyNode implements Htm
     private int zindex = 1;
     private int padding = 0;
     private Color backgroundColor = null;
+    private final String id;
+
+    private static final HashMap<String, Integer> idMap = new HashMap<>();
 
     private final HashMap<String, Method> baseMethods = new HashMap<>();
     private final HashMap<String, Method> myMethods = new HashMap<>();
@@ -42,11 +45,29 @@ public abstract class GuiPropertyModel extends DevicePropertyNode implements Htm
     public GuiPropertyModel(String name, DevicePropertyNode parent) {
         super(name, parent);
         loadFields();
+        int idVal = 0;
+        if (idMap.containsKey(this.getClass().getSimpleName())) {
+            idVal = idMap.get(this.getClass().getSimpleName());
+        }
+        idVal++;
+        idMap.put(this.getClass().getSimpleName(), idVal);
+        id = getName() + idVal;
     }
 
     public GuiPropertyModel(DevicePropertyNode parent) {
         super(parent);
         loadFields();
+        int idVal = 0;
+        if (idMap.containsKey(this.getClass().getSimpleName())) {
+            idVal = idMap.get(this.getClass().getSimpleName());
+        }
+        idVal++;
+        idMap.put(this.getClass().getSimpleName(), idVal);
+        id = getName() + idVal;
+    }
+
+    public String getID() {
+        return id;
     }
 
     public String getClassname() {
@@ -333,16 +354,18 @@ public abstract class GuiPropertyModel extends DevicePropertyNode implements Htm
 
     public String getD3Ref(GuiPropertyModel top) {
         StringBuilder sb = new StringBuilder();
-        DevicePropertyNode parent = this;
-
-        while (parent instanceof GuiPropertyModel) {
-            sb.insert(0, ".select(\"div#" + parent.getName() + "\")");
-            if (parent.equals(top)) {
-                break;
-            }
-            parent = parent.getParent();
-        }
-        sb.insert(0, "d3");
+//        DevicePropertyNode parent = this;
+//
+//        while (parent instanceof GuiPropertyModel) {
+//            
+//            sb.insert(0, ".select(\"div#" + ((GuiPropertyModel)parent).getID() + "\")");
+//            if (parent.equals(top)) {
+//                break;
+//            }
+//            parent = parent.getParent();
+//        }
+//        sb.insert(0, "d3");
+        sb.append("d3.select(").append(getID()).append(")");
 
         return sb.toString();
     }
@@ -350,7 +373,7 @@ public abstract class GuiPropertyModel extends DevicePropertyNode implements Htm
     public final String getMyHTML() throws Exception {
         StringBuilder sb = new StringBuilder();
         sb.append("<div id=\"");
-        sb.append(getName());
+        sb.append(getID());
         sb.append("\" class=\"");
         sb.append(getClassname());
         sb.append("\"");
